@@ -41,29 +41,6 @@ class BBox
 		void SetPoints(const vector<Vec3f>& v); // calc bounding box
 };
 
-class TriFace : public Vec3i
-{
-public:
-	TriFace()							{}
-	TriFace( int *v ) 					{ V3_COPY(_v,v); }
-	TriFace( int v0, int v1, int v2 )	{ V3_MAKE(_v,v0,v1,v2); }
-public:
-	int indexOf(int v) const			{ return ( v==x ? 0 : ( v==y ? 1 : ( v==z? 2 : -1 ) ) ); };
-	int nextOf(int v) const				{ return ( v==x ? y : ( v==y ? z : ( v==z? x : -1 ) ) ); };
-	int prevOf(int v) const				{ return ( v==x ? z : ( v==y ? x : ( v==z? y : -1 ) ) ); };
-};
-
-class Polygon : public IntList
-{
-public:
-	Polygon()							{}
-	Polygon( int *v, int n )			: IntList(n) { iterator k=begin(); while( k!=end() ) *k++ = *v++; }
-	Polygon( int v0, int v1, int v2 )	: IntList(3) { iterator k=begin(); *k++ = v0; *k++ = v1; *k++=v2; }
-public:
-	int indexOf(int v) const			{ IntList::const_iterator k = std::find(begin(), end(), v); return k==end() ? -1 : k-begin(); }
-	int nextOf(int v) const				{ IntList::const_iterator k = std::find(begin(), end(), v); if( k==end() ) return -1; k++; return( k==end()? front() : *k ); }
-	int prevOf(int v) const				{ IntList::const_iterator k = std::find(begin(), end(), v); if( k==end() ) return -1; return( k==begin()? back() : *--k ); }
-};
 
 class HalfEdge
 {
@@ -128,14 +105,18 @@ protected:
 class VtxLink : public VtxTopology
 {
 public:
-	HEdgeList & edges()   { return mEdges; }
+	VtxLink()                :mWeight(0) {}
+	HEdgeList & edges()      { return mEdges; }
+	void setWeight(float w)  { mWeight = w; }
+	float weight()           { return mWeight; }
 	
+public:
+	float mWeight;
 protected:
 	HEdgeList mEdges; // list of half edges originating from this
 
 
 };
-
 
 class TriMesh 
 {
@@ -169,12 +150,15 @@ public:
 	int needTopoBoundary();
 	int needTopoManifold();
 	int needFaceNormals( bool needFaceAreas = true );
+	int needFaceAreas();
 	int needVtxNormals();
-	int needEdgeWeight(char whichkind); // 'U' - uniform wight, 'L' - cotangent form laplacian
+	int needCotLaplacian();
+	int needSimpleLaplacian();
 	// Delete everything
 	void clear();
 public:
 	Vec3f calcFaceNormal(int f) const;
+	HalfEdge* findHalfEdge(int vStart, int vEnd);
 };
 
 } //namespace xglm {

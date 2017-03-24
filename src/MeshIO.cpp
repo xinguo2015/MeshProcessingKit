@@ -44,6 +44,7 @@ namespace xglm {
 		mesh.needVtxNormals();
 		mesh.needVtxLinks();
 		mesh.needTopoBoundary();
+		mesh.needCotLaplacian();
 		return 1;
 	}
 
@@ -60,6 +61,7 @@ namespace xglm {
 		if( strcasecmp(pext,".obj")==0 )
             readResult = MeshIO<TriMesh>::readOBJ( ifs, mesh);
 		return readResult;
+		return 1;
 	}
 
 

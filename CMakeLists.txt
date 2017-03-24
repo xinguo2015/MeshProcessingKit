@@ -6,7 +6,7 @@
 #
 ################################################################
 # 工程的名字，不是必须的，最好有
-project (QMesh) 
+project (MeshProcessingKit) 
 
 # 要求cmake的版本 > 2.6
 cmake_minimum_required (VERSION 2.6) 
@@ -39,16 +39,8 @@ set (CMAKE_BUILD_TYPE Debug)
 # 搜索src目录下的源程序文件
 # 文件名都保存于变量 DIR_SRCS
 aux_source_directory (src DIR_SRCS)
-# 头文件目录
-include_directories (src)
-include_directories (ply)
-
-add_subdirectory(ply ply)
 
 # 添加源代码文件生成可执行程序
-# 源代码文件列表由变量 DIR_SRCS 给出
-# 执行程序为 qmesh
-add_executable (qmesh ${DIR_SRCS} )
-# 添加生成目标 qmesh 所需要的链接库: 
-# ${GLUT_LIBRARY} 和 ${OPENGL_LIBRARY})
-target_link_libraries (qmesh ${GLUT_LIBRARY} ${OPENGL_LIBRARY})
+add_executable (mpkit ${DIR_SRCS} )
+target_link_libraries (mpkit ${GLUT_LIBRARY} ${OPENGL_LIBRARY})
+

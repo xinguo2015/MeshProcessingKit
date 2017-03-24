@@ -20,7 +20,7 @@ typedef std::vector<Vec3d>  V3dArray;
 
 #ifdef _DEBUG
 
-#define XGLM_LOG(format,...) printf("%s() in %s, line - %d)\n\t",__FUNCTION__, __FILE__,__LINE__),printf(format, ##__VA_ARGS__)
+#define XGLM_LOG(format,...) printf("%s() in %s, line - %d)\n\t",__FUNCTION__, __FILE__, __LINE__), printf(format, ##__VA_ARGS__)
 #define XGLM_ASSERT(a,format,...) if ( !(a) ) XGLM_LOG(format,##__VA_ARGS__)
 
 #else

@@ -10,6 +10,20 @@ class DrawFace
 		static void draw(TMesh& mesh);
 };
 
+template<typename TMesh>
+class DrawPointID
+{
+	public:
+		static void draw(TMesh& mesh);
+};
+
+
+template<typename TMesh>
+class DrawFaceID
+{
+	public:
+		static void draw(TMesh& mesh);
+};
 
 } //namespace xglm {
 

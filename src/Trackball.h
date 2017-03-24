@@ -1,6 +1,7 @@
 #ifndef __glut_manipulators_h_________________
 #define __glut_manipulators_h_________________
 
+#include "Math3D/math.h"
 #include "MyGLUT.h" 
 
 #ifdef _WIN
@@ -117,6 +118,7 @@ namespace xglm {
 					_active = false;
 				}
 			}
+			bool isActive() const { return _active; }
 			virtual void motion( int x, int y) 
 			{
 				if ( !_active) return;

@@ -3,7 +3,7 @@
 #include "TriMesh.h"
 
 namespace xglm {
-
+//--------------------------------------------------------------------------------
 
 void BBox::SetPoints(const std::vector<Vec3f>& v)
 {
@@ -79,13 +79,13 @@ int TriMesh::needBoundaryEdges()
 			// if not found, then add a boundary edge with leftFace = NullFace(-1)
 			if( eFound==es.end() ) 
 			{
-				XGLM_LOG("Add a boundary edge(%d->%d | %d)\n", v0, v1, k);
+				XGLM_LOG("Add a boundary edge(%d->%d | %d)\n", v0, v1, (int)k);
 				mVtxLinks[v0].edges().push_back(HalfEdge(v1,NullFace));
 			}
 			else if( eFound->leftFace()<0 )
 			{
 				// another face produce the same boundary
-				XGLM_LOG("Multiple face generate the same boundary(%d->%d | %d)\n", v0, v1, k);
+				XGLM_LOG("Multiple face generate the same boundary(%d->%d | %d)\n", v0, v1, (int)k);
 				XGLM_LOG("Indicates non-manifold mesh");
 				eFound->setLeftFace(eFound->leftFace()-1);
 			}
@@ -109,6 +109,18 @@ int TriMesh::needFaceNormals( bool needFaceAreas )
 			mFaceArea[k] = len*0.5f;
 		if( len>1.0e-6 )
 			mFaceNormal[k] /= len;
+	}
+	return 1;
+}
+
+int TriMesh::needFaceAreas()
+{
+	const int FN = mTriangles.size();
+	if( FN<1 ) return 0;
+	mFaceArea.resize( FN );
+	for( int k=0; k<FN; k++ ) 
+	{	
+		mFaceArea[k] = calcFaceNormal(k).length() * 0.5f;
 	}
 	return 1;
 }
@@ -196,13 +208,30 @@ int TriMesh::needTopoBoundary()
 // Normal of face f
 Vec3f TriMesh::calcFaceNormal(int f) const
 {	
-	const Vec3i & v = mTriangles[f];
+	const int *v = mTriangles[f].get_value();
 	return cross(
 			mPosition[v[1]]-mPosition[v[0]],
 			mPosition[v[2]]-mPosition[v[0]]);
 }
 
-int TriMesh::needEdgeWeight(char whichkind)
+//--------------------------------------------------
+//                                                //
+//             v2                                 //
+//             /\                                 //
+//         e0 /a \ e1                             //
+//           /    \                               //
+//         v0------*v1                            //
+//                                                //
+//                                  <e1, e2>/(|e1|*|e2|)
+//        cot(a) = cos(a)/sin(a) = ----------------------
+//                                   2*Area /(|e1|*|e2|)
+//--------------------------------------------------
+
+#ifndef CLAMP
+#define CLAMP(x, a, b) ((x)<(a) ? (a) : ((x)>(b) ? (b) : (x)))
+#endif
+
+int TriMesh::needCotLaplacian()
 {
 	// clear old weight if any
 	for( vector<VtxLink>::iterator k = mVtxLinks.begin(); k<mVtxLinks.end(); k++) {
@@ -210,6 +239,62 @@ int TriMesh::needEdgeWeight(char whichkind)
 			e.setWeight(0);
 		});
 	}
+	// compute triangle area
+	needFaceAreas();
+	// compute new weight
+	for( std::size_t k = 0; k<mTriangles.size(); k++ ) {
+		const int * t = mTriangles[k].get_value();
+		for( int j=0; j<3; j++ ) {
+			int v0 = t[j];
+			int v1 = t[(j+1)%3];
+			int v2 = t[(j+2)%3];
+			//Vec3f e0 = mPosition[v0]-mPosition[v2];
+			//Vec3f e1 = mPosition[v1]-mPosition[v2];
+			float d = (mPosition[v0]-mPosition[v2]).dot(mPosition[v1]-mPosition[v2]);
+			float area2 = 2*mFaceArea[k];
+			area2 = MAX(area2, 1.0e-6);
+			float cota = d/area2;
+			cota = CLAMP(cota,-100,100);
+			HalfEdge* e = NULL;
+			e = findHalfEdge(v0,v1); XGLM_ASSERT(e!=NULL,"edge(v0,v1) not found");
+			e->setWeight( e->weight()+cota );
+			e = findHalfEdge(v1,v0); XGLM_ASSERT(e!=NULL,"edge(v1,v0) not found");
+			e->setWeight( e->weight()+cota );
+		}
+	}
+	// diagonal weight
+	for( std::size_t k = 0; k<mVtxLinks.size(); k++ ) {
+		HEdgeList &eL = mVtxLinks[k].edges();
+		float sum = 0;
+		std::for_each(eL.begin(),eL.end(),[&sum](HalfEdge& e) { sum += e.weight(); });
+		std::for_each(eL.begin(),eL.end(),[ sum](HalfEdge& e) { e.setWeight(e.weight()/sum); });
+		mVtxLinks[k].setWeight(sum);
+	}
+	// normalize weight
+	return 1;
 }
 
+int TriMesh::needSimpleLaplacian()
+{
+	// clear old weight if any
+	for( vector<VtxLink>::iterator k = mVtxLinks.begin(); k<mVtxLinks.end(); k++) {
+		std::for_each(k->edges().begin(), k->edges().end(), [](HalfEdge &e){
+			e.setWeight(1.f);
+		});
+	}
+	return 1;
+}
+
+
+HalfEdge* TriMesh::findHalfEdge(int vStart, int vEnd)
+{
+	XGLM_ASSERT(vStart>=0 && vStart<(int)mVtxLinks.size(), "vStart is out of range");
+	HEdgeList & eL = mVtxLinks[vStart].edges();
+	vector<HalfEdge>::iterator e = std::find_if(eL.begin(), eL.end(), [vEnd](const HalfEdge& e) {
+		return e.endVtx()==vEnd;
+		});
+	return (e==eL.end() ? NULL : &(*e));
+}
+
+//--------------------------------------------------------------------------------
 } //namespace xglm {

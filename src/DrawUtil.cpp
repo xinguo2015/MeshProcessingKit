@@ -2,6 +2,7 @@
 #include "MyGLUT.h"
 #include "DrawUtil.h"
 #include "TriMesh.h"
+#include "PickPixel.h"
 
 namespace xglm {
 
@@ -22,24 +23,36 @@ void DrawFace<TriMesh>::draw( TriMesh & mesh)
 		glDrawElements(GL_TRIANGLES, mesh.mTriangles.size()*3, GL_UNSIGNED_INT, &mesh.mTriangles[0][0]);
 }
 
+template<>
+void DrawPointID<TriMesh>::draw( TriMesh & mesh)
+{
+	PixelInfo p;
+	glBegin(GL_POINTS);
+	for( std::size_t k=0; k<mesh.mPosition.size(); k++ )
+	{
+		p.pack(1,k);
+		glColor4ubv((unsigned char*)p);
+		glVertex3fv(mesh.mPosition[k].get_value());
+	}
+	glEnd();
+}
+
+template<>
+void DrawFaceID<TriMesh>::draw( TriMesh & mesh)
+{
+	PixelInfo p;
+	glBegin(GL_TRIANGLES);
+	for( std::size_t k=0; k<mesh.mTriangles.size(); k++ )
+	{
+		const int * t = mesh.mTriangles[k].get_value();
+		p.pack(2,k);
+		glColor4ubv((unsigned char*)p);
+		glVertex3fv(mesh.mPosition[t[0]].get_value());
+		glVertex3fv(mesh.mPosition[t[1]].get_value());
+		glVertex3fv(mesh.mPosition[t[2]].get_value());
+	}
+	glEnd();
+}
+
 } //namespace xglm {
 
-
-
-//		// draw points
-//		if( ops.getOption(RenderOption::Points) )
-//		{
-//			// draw as points
-//			glPointSize( ops.getPointSize() );
-//			glDrawArrays(GL_POINTS, 0, mesh._vertices.size());
-//		}
-//		// bounding box
-//		if( ops.getOption(RenderOption::BBox) )
-//		{
-//			Vec3f c = (mesh._bbox._min + mesh._bbox._max)*.5f;
-//			Vec3f s = mesh._bbox._size;
-//			glColor4f(1.0f, 0.0f, 1.0f, 0.3f);
-//			glTranslatef(c[0], c[1], c[2]);
-//			glScalef(s[0], s[1], s[2]);
-//			glutSolidCube(1.0);
-//		}

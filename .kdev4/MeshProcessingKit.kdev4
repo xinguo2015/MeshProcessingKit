@@ -1,5 +1,5 @@
 [Buildset]
-BuildItems=@Variant(\x00\x00\x00\t\x00\x00\x00\x00\x01\x00\x00\x00\x0b\x00\x00\x00\x00\x01\x00\x00\x00\n\x00Q\x00M\x00e\x00s\x00h)
+BuildItems=@Variant(\x00\x00\x00\t\x00\x00\x00\x00\x01\x00\x00\x00\x0b\x00\x00\x00\x00\x01\x00\x00\x00"\x00M\x00e\x00s\x00h\x00P\x00r\x00o\x00c\x00e\x00s\x00s\x00i\x00n\x00g\x00K\x00i\x00t)
 
 [CMake]
 Build Directory Count=1
@@ -7,12 +7,12 @@ Current Build Directory Index=0
 ProjectRootRelative=./
 
 [CMake][CMake Build Directory 0]
-Build Directory Path=file:///home/external/Documents/QMesh/build
+Build Directory Path=file:///home/external/Documents/MeshProcessingKit/build
 Build Type=Debug
 CMake Binary=file:///usr/bin/cmake
 Environment Profile=
-Extra Arguments=
-Install Directory=file:///usr/local
+Extra Arguments=-D_DEBUG
+Install Directory=
 
 [Defines And Includes][Compiler]
 Name=GCC
@@ -20,7 +20,7 @@ Path=gcc
 Type=GCC
 
 [Filters]
-size=26
+size=25
 
 [Filters][0]
 inclusive=0
@@ -112,11 +112,6 @@ inclusive=0
 pattern=/<wrong-target>
 targets=1
 
-[Filters][25]
-inclusive=0
-pattern=/source.zip
-targets=1
-
 [Filters][3]
 inclusive=0
 pattern=.svn
@@ -163,20 +158,15 @@ Type=Native Application
 
 [Launch][Launch Configuration 0][Data]
 Arguments=/home/external/Data3D/Dolphin.obj
-Debugger Shell=
 Dependencies=@Variant(\x00\x00\x00\t\x00\x00\x00\x00\x00)
-Dependency Action=Build
-Display Demangle Names=true
-Display Static Members=true
+Dependency Action=Nothing
 EnvironmentGroup=
-Executable=file:///home/external/Documents/QMesh/build/qmesh
+Executable=file:///home/external/Documents/MeshProcessingKit/build/mpkit
 External Terminal=konsole --noclose --workdir %workdir -e %exe
-GDB Path=
-Project Target=QMesh,ply,ply2obj
-Remote GDB Config Script=
-Remote GDB Run Script=
-Remote GDB Shell Script=
-Start With=ApplicationOutput
+Project Target=MeshProcessingKit,<wrong-target>
 Use External Terminal=false
-Working Directory=file:///home/external/Documents/QMesh
+Working Directory=
 isExecutable=true
+
+[Project]
+VersionControlSupport=kdevgit
