@@ -142,14 +142,14 @@ public:
 		unsigned int idx = mObjUnderMouse.getIndex();
 		glPushAttrib(GL_LIGHTING_BIT);
 		glDisable(GL_LIGHTING);
-		if( grp==1 && idx>=0 && idx<mMesh.mPosition.size() ) { // vertex
+		if( grp==1 && idx<mMesh.mPosition.size() ) { // vertex
 			glBegin(GL_POINTS);
 			glColor4ub(255,0,0,0);
 			glVertex3fv(mMesh.mPosition[idx].get_value());
 			glEnd();
 			//printf("cursor points\n");
 		}
-		else if( grp==2 && idx>=0 && idx<mMesh.mTriangles.size() ) {  // face
+		else if( grp==2 && idx<mMesh.mTriangles.size() ) {  // face
 			const int * t = mMesh.mTriangles[idx].get_value();
 			glPointSize(15);
 			glBegin(GL_TRIANGLES);
@@ -197,7 +197,7 @@ protected:
 	
 };
 
-GLUTApp  theApp("MeshProcessingKit", 1600, 1200, 800, 200);
+GLUTApp  theApp("MeshProcessingKit", 800, 600, 1200, 200);
 MyGLView theView;
 int main (int argc, char *argv[])
 {
