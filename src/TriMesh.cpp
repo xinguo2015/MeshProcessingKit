@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <math.h>
 #include "MyGLUT.h"
 #include "TriMesh.h"
 
@@ -222,9 +223,18 @@ Vec3f TriMesh::calcFaceNormal(int f) const
 //           /    \                               //
 //         v0------*v1                            //
 //                                                //
-//                                  <e1, e2>/(|e1|*|e2|)
-//        cot(a) = cos(a)/sin(a) = ----------------------
-//                                   2*Area /(|e1|*|e2|)
+//                           cos(a)*(|e1||e2|)
+// cot(a) = cos(a)/sin(a) = -------------------
+//                           sin(a)*(|e1||e2|)
+//
+//                           <e1, e2>
+//        = -------------------------------------
+//             sqrt(1-cos(a)*cos(a))*(|e1||e2|)
+//
+//                      <e1, e2>
+//        = --------------------------------
+//             sqrt((|e1||e2|)^2-<e1,e2>^2
+//
 //--------------------------------------------------
 
 #ifndef CLAMP
@@ -239,36 +249,33 @@ int TriMesh::needCotLaplacian()
 			e.setWeight(0);
 		});
 	}
-	// compute triangle area
-	needFaceAreas();
-	// compute new weight
+
+	// compute cot form laplacian weight
 	for( std::size_t k = 0; k<mTriangles.size(); k++ ) {
 		const int * t = mTriangles[k].get_value();
 		for( int j=0; j<3; j++ ) {
 			int v0 = t[j];
 			int v1 = t[(j+1)%3];
 			int v2 = t[(j+2)%3];
-			//Vec3f e0 = mPosition[v0]-mPosition[v2];
-			//Vec3f e1 = mPosition[v1]-mPosition[v2];
-			float d = (mPosition[v0]-mPosition[v2]).dot(mPosition[v1]-mPosition[v2]);
-			float area2 = 2*mFaceArea[k];
-			area2 = MAX(area2, 1.0e-6);
-			float cota = d/area2;
-			cota = CLAMP(cota,-100,100);
+			Vec3f e0 = mPosition[v0]-mPosition[v2];
+			Vec3f e1 = mPosition[v1]-mPosition[v2];
+			float d = e0.dot(e1);
+            float w = d / sqrtf(e0.dot(e0)*e1.dot(e1) - d*d);
 			HalfEdge* e = NULL;
-			e = findHalfEdge(v0,v1); XGLM_ASSERT(e!=NULL,"edge(v0,v1) not found");
-			e->setWeight( e->weight()+cota );
-			e = findHalfEdge(v1,v0); XGLM_ASSERT(e!=NULL,"edge(v1,v0) not found");
-			e->setWeight( e->weight()+cota );
+			e = findHalfEdge(v0,v1); XGLM_ASSERT(e!=NULL,"edge(%d,%d) not found",v0,v1);
+			e->weight() += w;
+			e = findHalfEdge(v1,v0); XGLM_ASSERT(e!=NULL,"edge(%d,%d) not found",v1,v0);
+			e->weight() += w;
 		}
 	}
 	// diagonal weight
 	for( std::size_t k = 0; k<mVtxLinks.size(); k++ ) {
-		HEdgeList &eL = mVtxLinks[k].edges();
-		float sum = 0;
+        HEdgeList &eL = mVtxLinks[k].edges();
+        float sum = 0;
+        if( eL.size()<1 ) continue;
 		std::for_each(eL.begin(),eL.end(),[&sum](HalfEdge& e) { sum += e.weight(); });
-		std::for_each(eL.begin(),eL.end(),[ sum](HalfEdge& e) { e.setWeight(e.weight()/sum); });
-		mVtxLinks[k].setWeight(sum);
+		std::for_each(eL.begin(),eL.end(),[ sum](HalfEdge& e) { e.weight() /= sum; });
+		mVtxLinks[k].setWeight(-sum);
 	}
 	// normalize weight
 	return 1;
