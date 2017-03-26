@@ -167,7 +167,7 @@ int readOBJMeshData(std::istream& sourceStream, MeshData& data )
 		if( token == "" )        // empty string
 			continue; 
 		// fail with error
-		XGLM_LOG("Seems invalid Wavefront OBJ file! (Offending line:\n%s\n",line);
+		XGLM_LOG("Seems invalid Wavefront OBJ file! (Offending line:\n%s\n",line.c_str());
 		return 0;
 	}
 	// succeed
