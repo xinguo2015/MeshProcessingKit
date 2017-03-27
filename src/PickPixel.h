@@ -1,3 +1,6 @@
+#ifndef ____pick_pixel_h_____________
+#define ____pick_pixel_h_____________
+
 #include <vector>
 
 using namespace std;
@@ -50,3 +53,4 @@ public:
 };
 
 }
+#endif // #ifndef ____pick_pixel_h_____________

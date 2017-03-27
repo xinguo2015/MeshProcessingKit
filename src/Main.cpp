@@ -115,7 +115,7 @@ public:
 	virtual void drawScene(void)
 	{
 		glColor4f(1.f, 1.f, 1.f, 1.f);
-		DrawFace<TriMesh>::draw(mMesh);
+		DrawMesh::Face(mMesh.mTriangles, mMesh.mPosition, mMesh.mNormal);
 		if( (unsigned int)mObjUnderMouse )
 			drawObjUnderMouse();
 	}
@@ -184,9 +184,9 @@ protected:
 		GLView::applyProjectionAndModelview();
 		// drawing....
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-		DrawFaceID<TriMesh>::draw(mMesh);
+		DrawMesh::FaceID(mMesh.mTriangles, mMesh.mPosition);
 		glPointSize(10.0f);
-		DrawPointID<TriMesh>::draw(mMesh);
+		DrawMesh::PointID(mMesh.mPosition);
 		glFlush();
 		// read out the color buffer 
 		glReadBuffer(GL_BACK);
@@ -197,7 +197,7 @@ protected:
 	
 };
 
-GLUTApp  theApp("MeshProcessingKit", 800, 600, 1200, 200);
+GLUTApp  theApp("MeshProcessingKit", 1800, 1600, 1200, 200);
 MyGLView theView;
 int main (int argc, char *argv[])
 {

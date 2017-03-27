@@ -6,6 +6,7 @@
  ***************************************************/
 
 #include <vector>
+#include <stdio.h>
 #include "Math3D/math.h"
 
 namespace xglm {
