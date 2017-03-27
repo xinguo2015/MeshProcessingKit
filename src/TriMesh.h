@@ -51,6 +51,7 @@ public:
 	int   endVtx() const	  { return mEndVtx; }
 	int   leftFace() const	  { return mLeftFace; }
 	float weight() const      { return mWeight; }
+    float&weight()            { return mWeight; }
 	void  setEndVtx(int v)	  { mEndVtx = v; }
 	void  setLeftFace(int f)  { mLeftFace = f; }
 	void  setWeight( float w) { mWeight = w; }
