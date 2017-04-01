@@ -15,6 +15,10 @@
 #define ABS(a) ( (a)>0 ? (a) : -(a) )
 #endif
 
+#ifndef CLAMP
+#define CLAMP(x,a,b) ( (x)<(a)? (a) : ( (x)>(b)? (b) : (x) ) )
+#endif
+
 // 2D vector
 
 #define V2_MAKE(V, x, y) \

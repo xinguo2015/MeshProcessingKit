@@ -74,7 +74,7 @@ static Vec3i parseFaceIndex( const string& token )
 
 static int addTriangle(vector<Vec3i> & f, MeshData & data)
 {
-	data.triPosIndices->push_back(Vec3i(f[0][0],f[1][0],f[2][0]));
+	data.triangles->push_back(Vec3i(f[0][0],f[1][0],f[2][0]));
 	if( data.triTexIndices )
 		data.triTexIndices->push_back(Vec3i(f[0][1],f[1][1],f[2][2]));
 	if( data.triNormalIndices )
@@ -89,7 +89,7 @@ static int addPolygon(vector<Vec3i> & f, MeshData & data)
 	// position indices
 	for( k=f.begin(); k!=f.end(); k++ )
 		L.push_back( (*k)[0] );
-	data.polyPosIndices->push_back( L );
+	data.polygons->push_back( L );
 	// texture coordinate indices
 	for( k=f.begin(); k!=f.end(); k++ )
 		L.push_back( (*k)[1] );
@@ -97,7 +97,7 @@ static int addPolygon(vector<Vec3i> & f, MeshData & data)
 	// normal indices
 	for( k=f.begin(); k!=f.end(); k++ )
 		L.push_back( (*k)[2] );
-	data.polyPosIndices->push_back( L );
+	data.polygons->push_back( L );
 	return 1;
 }
 
@@ -105,7 +105,7 @@ static int readFace( stringstream & ss, MeshData & data )
 {
 	string token;
 	vector<Vec3i> f;
-	if( ! data.polyPosIndices && ! data.triPosIndices )
+	if( ! data.polygons && ! data.triangles )
 		return 1;
 	while( ss >> token )
 	{
@@ -115,12 +115,12 @@ static int readFace( stringstream & ss, MeshData & data )
 	}
 	if( f.size()<3 ) 
 	{
-		XGLM_LOG("face with < 3 vertices");
+		xglm_debug("face with < 3 vertices");
 		return 0;
 	}
-	if( f.size()==3 && data.triPosIndices )
+	if( f.size()==3 && data.triangles )
 		return addTriangle(f, data);
-	else if( data.polyPosIndices )
+	else if( data.polygons )
 		return addPolygon(f, data);
 	return 1;
 }
@@ -137,9 +137,9 @@ int readOBJMeshData(std::istream& sourceStream, MeshData& data )
  
 		ss >> token;
 
-		if( token == "f" && (data.triPosIndices || data.polyPosIndices) ) { FN++;
+		if( token == "f" && (data.triangles || data.polygons ) ) { FN++;
 			if ( ! readFace ( ss, data ) ) {
-				XGLM_LOG("Wrong line for face\n");
+				xglm_debug("Wrong line for face\n");
 				return 0;
 			}
 			continue;
@@ -167,7 +167,7 @@ int readOBJMeshData(std::istream& sourceStream, MeshData& data )
 		if( token == "" )        // empty string
 			continue; 
 		// fail with error
-		XGLM_LOG("Seems invalid Wavefront OBJ file! (Offending line:\n%s\n",line.c_str());
+		xglm_debug("Seems invalid Wavefront OBJ file! (Offending line:\n%s\n",line.c_str());
 		return 0;
 	}
 	// succeed

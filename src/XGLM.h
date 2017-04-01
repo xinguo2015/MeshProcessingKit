@@ -5,9 +5,24 @@
 	> Date:   2016年01月17日 星期日 12时58分44秒
  ***************************************************/
 
-#include <vector>
+#ifndef __xglm_h_________________________
+#define __xglm_h_________________________
+
 #include <stdio.h>
+#include <vector>
+#include <map>
 #include "Math3D/math.h"
+
+// print some log information
+
+#ifdef _DEBUG
+#define xglm_debug(format,...) printf("%s() in %s, line - %d)\n\t",__FUNCTION__, __FILE__, __LINE__), printf(format, ##__VA_ARGS__)
+#define xglm_assert(a,format,...) if ( !(a) ) xglm_debug(format,##__VA_ARGS__)
+#else
+#define xglm_debug(format,...) 
+#define xglm_assert(a,format,...)
+#endif
+
 
 namespace xglm {
 	
@@ -19,16 +34,6 @@ typedef std::vector<Vec3i>  V3iArray;
 typedef std::vector<Vec3f>  V3fArray;
 typedef std::vector<Vec3d>  V3dArray;
 
-#ifdef _DEBUG
-
-#define XGLM_LOG(format,...) printf("%s() in %s, line - %d)\n\t",__FUNCTION__, __FILE__, __LINE__), printf(format, ##__VA_ARGS__)
-#define XGLM_ASSERT(a,format,...) if ( !(a) ) XGLM_LOG(format,##__VA_ARGS__)
-
-#else
-
-#define XGLM_LOG(format,...)
-#define XGLM_ASSERT(a,format,...)
-
-#endif
-
 } //namespace xglm {
+
+#endif //#ifndef __xglm_h_________________________

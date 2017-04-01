@@ -9,7 +9,7 @@
 #include <algorithm>
 #include <functional>
 
-#include "GLUTApp.h"
+#include "GLView.h"
 #include "TriMesh.h"
 #include "MeshIO.h"
 #include "DrawUtil.h"
@@ -51,6 +51,7 @@ public:
 		{
 			case 'v':
 				mInPicking = !mInPicking; break;
+				glutPostRedisplay();
 			case 's':
 			case 'S':
 				GLView::cbKeyboard(key,x,y);
@@ -78,7 +79,10 @@ public:
 	}
 	virtual void cbPassiveMotion(int x, int y)
 	{
-		mObjUnderMouse = getObjectAt(x,_viewport[3]-y);
+		if( mInPicking )
+			mObjUnderMouse = getObjectAt(x,_viewport[3]-y);
+		else
+			mObjUnderMouse = PixelInfo(0);
 	}
 	// callbacks 
 	virtual void cbDisplay ()
@@ -87,20 +91,14 @@ public:
 		{
 			updatePickBuffer();
 		}
-	    //glClear(GL_COLOR_BUFFER_BIT);
-		//glDrawPixels(_viewport[2],_viewport[3],GL_RGBA, GL_UNSIGNED_BYTE, mPickBuffer.getBuf());
-		//updatePickBuffer();
-		//glFlush();
-		//glutSwapBuffers();
-		//glutPostRedisplay();
 		GLView::cbDisplay();
 	}
 	virtual int loadScene(string scene)
 	{
-		XGLM_LOG("Reading mesh from %s\n", scene.c_str());
+		xglm_debug("Reading mesh from %s\n", scene.c_str());
 		if( ! MeshIO<TriMesh>::readMesh(scene, mMesh) )
 		{
-			XGLM_LOG("Failed reading mesh %s\n", scene.c_str());
+			xglm_debug("Failed reading mesh %s\n", scene.c_str());
 			return 0;
 		}
 		return 1;
@@ -115,12 +113,28 @@ public:
 	virtual void drawScene(void)
 	{
 		glColor4f(1.f, 1.f, 1.f, 1.f);
-		DrawMesh::Face(mMesh.mTriangles, mMesh.mPosition, mMesh.mNormal);
+		// fill or wire
+		if( _variables["GL_POLYGON_MODE"].getint()==GL_LINE )
+			glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
+		else
+			glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
+		//const char *shademodel = _variables["MyShadeModel"].getstr();
+		switch( _variables["MyShadeModel"].getint() )
+		{
+			case DrawMesh::ShadeModelFacet:  DrawMesh::Face(mMesh.mTriangles, mMesh.mPosition, mMesh.mFaceNormal); break;
+			case DrawMesh::ShadeModelSmooth: DrawMesh::Face(mMesh.mTriangles, mMesh.mPosition, mMesh.mNormal); break;
+			case DrawMesh::ShadeModelGroup:
+				if( mMesh.mTriNormalIndices.size()!=mMesh.mTriangles.size() )
+					mMesh.needCrease(30);
+				DrawMesh::Face(mMesh.mTriangles, mMesh.mTriNormalIndices, mMesh.mPosition, mMesh.mNormal);
+		}
 		if( (unsigned int)mObjUnderMouse )
 			drawObjUnderMouse();
 	}
+	
 	virtual void drawText()
 	{
+		int ycoord = 10;
 		const int *vport = _viewport;
 		const int screenWidth = vport[2];
 		const int screenHeight = vport[3];
@@ -133,23 +147,27 @@ public:
 		string fps = ss.str();
 		drawString(fps.c_str(), screenWidth-(int)fps.size() * TEXT_WIDTH, screenHeight-TEXT_HEIGHT,color,gTextFont);
 		ss.str(""); // clear buffer
+		int sm = _variables["MyShadeModel"].getint();
+		ss << "Shade Model: " << (sm==DrawMesh::ShadeModelFacet?"Facet Normal":(sm==DrawMesh::ShadeModelGroup?"Cornal Normal":"Vertex Normal")) << ends;
+		drawString(ss.str().c_str(), 1, ycoord, color, gTextFont);
+		ss.str(""); // clear buffer
 		ss << "Press v to toggle visual model." << ends;
-		drawString(ss.str().c_str(), 1, 10, color, gTextFont);
+		drawString(ss.str().c_str(), 1, ycoord+=TEXT_HEIGHT*1.2, color, gTextFont);
 	}
 	void drawObjUnderMouse()
 	{
-		unsigned int grp = mObjUnderMouse.getGroup();
+		unsigned int typ = mObjUnderMouse.getType();
 		unsigned int idx = mObjUnderMouse.getIndex();
 		glPushAttrib(GL_LIGHTING_BIT);
 		glDisable(GL_LIGHTING);
-		if( grp==1 && idx<mMesh.mPosition.size() ) { // vertex
+		if( typ==1 && idx<mMesh.mPosition.size() ) { // vertex
 			glBegin(GL_POINTS);
 			glColor4ub(255,0,0,0);
 			glVertex3fv(mMesh.mPosition[idx].get_value());
 			glEnd();
 			//printf("cursor points\n");
 		}
-		else if( grp==2 && idx<mMesh.mTriangles.size() ) {  // face
+		else if( typ==2 && idx<mMesh.mTriangles.size() ) {  // face
 			const int * t = mMesh.mTriangles[idx].get_value();
 			glPointSize(15);
 			glBegin(GL_TRIANGLES);
@@ -203,16 +221,13 @@ int main (int argc, char *argv[])
 {
 	setbuf(stdout, NULL); // to seed ouput immediately for debugging
 
-	if( argc<2 ) {
-		printf("Requiring a path to the input model\n");
+	glutInit(&argc, argv);
+	if( ! theApp.createWindow() ) {
+		printf("Failed creating the window\n");
 		return 1;
 	}
-	if( ! theApp.createWindow(argc, argv) ) {
-		printf("Failed creating the window\n");
-		return 1;		
-	}
-	if( ! theView.loadScene(string(argv[1])) ) {
-		printf("Failed loading the input model:\n\t%s\n", argv[1]);
+	if( argc<2 || ! theView.loadScene( argv[1] ) ) {
+		printf("Need a valid path to the input model\n");
 		return 1;
 	}
 	theView.initialize ();

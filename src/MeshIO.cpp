@@ -13,28 +13,13 @@ using std::string;
 using std::vector;
 
 namespace xglm {
-	
-	void MeshData::Reset()
-	{
-		position = NULL;      // position
-		texCoord = NULL;      // texture coordinate
-		normal = NULL;        // normal vector
-		tangent = NULL;       // tagent vector
-		triPosIndices = NULL;    // triangle indices
-		triTexIndices = NULL;    // texture coord indices
-		triNormalIndices = NULL; // normal vector indices
-		polyPosIndices = NULL;// polygon indices
-		polyTexIndices = NULL;// texture coord indices
-		polyNormalIndices = NULL;// normal vector indices
-	}
-	
 
 	template<>
 	int MeshIO<TriMesh>::readOBJ(istream & inputstream, TriMesh & mesh)
 	{
 		MeshData data;
-		data.position      = & mesh.mPosition;      // read vertex position
-		data.triPosIndices = & mesh.mTriangles; // read triangles
+		data.position  = & mesh.mPosition;      // read vertex position
+		data.triangles = & mesh.mTriangles; // read triangles
 		// start to read
 		if( ! readOBJMeshData(inputstream, data) )
 			return 0;

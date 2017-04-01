@@ -15,8 +15,8 @@ public:
 	operator unsigned int () const 						{ return idx; }
 	operator unsigned int*()                            { return &idx; }
 	operator unsigned char*()                           { return (unsigned char *)&idx; }
-	void pack(unsigned int group, unsigned int index)   { idx = (index << MaskSize) | (group & MaskBits); }
-	unsigned int getGroup() const						{ return idx & MaskBits; }
+	void pack(unsigned int ptype, unsigned int index)   { idx = (index << MaskSize) | (ptype & MaskBits); }
+	unsigned int getType() const						{ return idx & MaskBits; }
 	unsigned int getIndex()	const						{ return idx >> MaskSize;   }
 public:
 	union {

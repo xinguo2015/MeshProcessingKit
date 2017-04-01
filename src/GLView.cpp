@@ -5,9 +5,8 @@
 #include <iostream>
 #include <sstream>
 #include <string>
-#include <iomanip>
-//#include <cstdlib>
-#include "GLUTApp.h"
+#include "DrawUtil.h"
+#include "GLView.h"
 #include "XGLM.h"
 
 #ifdef _WIN
@@ -27,7 +26,29 @@ namespace xglm {
 			++str;
 		}
 	}
+		
+	GLUTApp::GLUTApp(const char title[], int winWidth, int winHeight, int posX, int posY)
+	{
+		_winID = -1;
+		_winTitle = string(title);
+		_winPosX = posX;
+		_winPosY = posY;
+		_winWidth = winWidth;
+		_winHeight = winHeight;
+	}
 	
+	int GLUTApp::createWindow()
+	{
+		// initialize glut
+		glutInitWindowPosition(_winPosX, _winPosY);
+		glutInitWindowSize(_winWidth, _winHeight);
+		// GLUT_ALPHA must be specified for using alpha
+		glutInitDisplayMode(GLUT_DOUBLE | GLUT_DEPTH | GLUT_RGBA | GLUT_ALPHA); 
+		_winID = glutCreateWindow(_winTitle.c_str());
+		if( _winID < 0 ) 
+			return 0;
+		return 1;
+	}
 	
 	///////////////////////////////////////////////////////////////////////////////
 	// display frame rates
@@ -49,35 +70,7 @@ namespace xglm {
 			_frameCount ++;
 		_frameCountTotal++;
 	}
-	
-	GLUTApp::GLUTApp(const char title[], int winWidth, int winHeight, int posX, int posY)
-	{
-		_winID = -1;
-		_winTitle = string(title);
-		_winPosX = posX;
-		_winPosY = posY;
-		_winWidth = winWidth;
-		_winHeight = winHeight;
-	}
-	
-	int GLUTApp::createWindow(int argc, char *argv[])
-	{
-		// initialize glut
-		glutInit(&argc, argv);
-		glutInitWindowPosition(_winPosX, _winPosY);
-		glutInitWindowSize(_winWidth, _winHeight);
-		glutInitDisplayMode(GLUT_DOUBLE | GLUT_DEPTH 
-			| GLUT_RGBA | GLUT_ALPHA); // GLUT_ALPHA must be specified for using alpha
-		_winID = glutCreateWindow(_winTitle.c_str());
-		if( _winID < 0 ) 
-			return 0;
-// 		int bn;
-// 		glGetIntegerv(GL_RED_BITS, &bn); printf("r bits=%d\n",bn);
-// 		glGetIntegerv(GL_GREEN_BITS, &bn);printf("g bits=%d\n",bn);
-// 		glGetIntegerv(GL_BLUE_BITS, &bn);printf("b bits=%d\n",bn);
-// 		glGetIntegerv(GL_ALPHA_BITS, &bn);printf("a bits=%d\n",bn);
-		return 1;
-	}
+
 	
 	GLCamera::GLCamera()
 	{
@@ -111,36 +104,53 @@ namespace xglm {
 	{
 		v->cbKeyboard(k,x,y);
 	}
-	void gggKeyboardFunc( void (* callback)( unsigned char, int, int ) );
+
 	void GLView::initialize()
 	{
 		// store some scene parameters
 		Vec3f bbx[2];
 		getSceneBBox(bbx[0], bbx[1]);
-		float sceneSize = (bbx[1]-bbx[0]).length()/2;
+		_sceneSize = (bbx[1]-bbx[0]).length()/2;
 		// center and scaling
 		_sceneCenter = Vec4f((bbx[0]+bbx[1])*0.5f, 1.0f);
 		_sceneScaling = 1.0f;
 		// model view
-		Vec3f eye = Vec3f(_sceneCenter) + sceneSize*2.f*Vec3f(0,0,1);
+		Vec3f eye = Vec3f(_sceneCenter) + _sceneSize*2.f*Vec3f(0,0,1);
 		_modelview.translation(-eye);
 		// adjust near/far plane
-		_pproj._znear = sceneSize/10;
-		_pproj._zfar = sceneSize*10;
+		_pproj._znear = _sceneSize/10;
+		_pproj._zfar = _sceneSize*10;
 		// setup track ball
-		Vec3f coRot ( _modelview*_sceneCenter );
-		_trackball.setCenterOfRotation(coRot);
+		Vec3f rotCenter ( _modelview*_sceneCenter );
+		_trackball.setCenterOfRotation(rotCenter);
 		// setup OpenGL
 		glClearStencil(0);                          // clear stencil buffer
 		glClearColor(0, 0, 0, 0);
 		glClearDepth(1.0f);                         // 0 is near, 1 is far
 		glDepthFunc(GL_LEQUAL);
 		glEnable(GL_DEPTH_TEST);
-		glEnable(GL_LIGHTING);
-		glEnable(GL_LIGHT0);
+		//glEnable(GL_LIGHT1);
+		glColorMaterial(GL_FRONT_AND_BACK,GL_DIFFUSE);
 		glEnable(GL_COLOR_MATERIAL);
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 4);      // 4-byte pixel alignment
 		glLineWidth(2.0f);
+		glPointSize(15.f);
+		// init lights
+		_variables["GL_LIGHT0_POSITION"].getVec4f() = Vec4f( _sceneSize/4, 0.f, 0.f, 1.f );
+		_variables["GL_LIGHT0_DIFFUSE"].getVec4f() = Vec4f( 0.7f, 0.8f, 0.8f, 1.f );
+		_variables["MyShadeModel"].getint() = DrawMesh::ShadeModelFacet;
+		// setup light
+		glEnable(GL_LIGHTING); 
+		glEnable(GL_LIGHT0);
+		setupLights();
+	}
+	
+	void GLView::setupLights()
+	{
+		glMatrixMode(GL_MODELVIEW);
+		glLoadIdentity();
+		glLightfv(GL_LIGHT0,GL_POSITION,_variables.get("GL_LIGHT0_POSITION").getVec4f().get_value());
+		glLightfv(GL_LIGHT0,GL_DIFFUSE, _variables.get("GL_LIGHT0_DIFFUSE").getVec4f().get_value());
 	}
 	
 	void GLView::applyProjectionAndModelview()
@@ -208,33 +218,23 @@ namespace xglm {
 	
 	void GLView::cbKeyboard (unsigned char key, int x, int y)
 	{
-		GLint params[2];
-		
+		int oldv;
 		switch (key)
 		{
 			case 'f':
-				glGetIntegerv(GL_SHADE_MODEL, params);
-				if (params[0] == GL_FLAT)
-					glShadeModel(GL_SMOOTH);
-				else
-					glShadeModel(GL_FLAT);
+				oldv = _variables["MyShadeModel"].getint();
+				_variables["MyShadeModel"].getint() = (oldv+1) % DrawMesh::ShadeModelNumber;
 				break;
-				
 			case 'w':
-				glGetIntegerv(GL_POLYGON_MODE, params);
-				if (params[0] == GL_FILL)
-					glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-				else
-					glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+				oldv = _variables["GL_POLYGON_MODE"].getint();
+				_variables["GL_POLYGON_MODE"].getint() = (oldv==GL_FILL ? GL_LINE : GL_FILL);
 				break;
-				
 			case 'S':
 				_sceneScaling *= 0.95;
 				break;
 			case 's':
 				_sceneScaling *= 1.05;
 				break;
-				
 			case 'q': case 'Q': case 27:
 				exit(0);
 		}
@@ -242,11 +242,28 @@ namespace xglm {
 	
 	void GLView::cbMotion (int x, int y)
 	{
+		// drag lighting position
+		bool findp = _variables.find("cbMotionXY");
+		Vec2i p = _variables["cbMotionXY"].getVec2i();
+		_variables["cbMotionXY"].getVec2i() = Vec2i(x,y);
+		if( findp && _variables[GLUT_RIGHT_BUTTON].getint()==GLUT_DOWN )
+		{
+			float dx = x-p.x, dy = p.y-y;
+			dx = CLAMP(dx,-30,30)/30*_sceneSize/3;
+			dy = CLAMP(dy,-30,30)/30*_sceneSize/3;
+			Vec4f f = _variables["GL_LIGHT0_POSITION"].getVec4f() + Vec4f(dx,dy,0,0);
+			f.x = CLAMP(f.x, -_sceneSize*5, _sceneSize*5); 
+			f.y = CLAMP(f.y, -_sceneSize*5, _sceneSize*5); 
+			_variables["GL_LIGHT0_POSITION"].getVec4f() = f;
+			setupLights();
+		}
+		// drag trackball
 		_trackball.motion(x, y);
 	}
 	
 	void GLView::cbMouse(int button, int state, int x, int y)
 	{
+		_variables[button].getint() = state;
 		_trackball.mouse(
 			Manipulator::convertButtonFromGlut(button),
 			Manipulator::convertModifierFromGlut(glutGetModifiers()),

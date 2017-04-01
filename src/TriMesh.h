@@ -106,10 +106,11 @@ protected:
 class VtxLink : public VtxTopology
 {
 public:
-	VtxLink()                :mWeight(0) {}
-	HEdgeList & edges()      { return mEdges; }
-	void setWeight(float w)  { mWeight = w; }
-	float weight()           { return mWeight; }
+	VtxLink()                           :mWeight(0) {}
+	const HEdgeList & edges() const     { return mEdges; }
+	      HEdgeList & edges()           { return mEdges; }
+	void setWeight(float w)             { mWeight = w; }
+	float weight()                      { return mWeight; }
 	
 public:
 	float mWeight;
@@ -155,11 +156,54 @@ public:
 	int needVtxNormals();
 	int needCotLaplacian();
 	int needSimpleLaplacian();
+	int needCrease(float angle);
 	// Delete everything
 	void clear();
 public:
 	Vec3f calcFaceNormal(int f) const;
 	HalfEdge* findHalfEdge(int vStart, int vEnd);
 };
+
+// for mesh io and processing algorithms;
+class MeshData
+{
+public:
+	MeshData() { Reset(); }
+	void Reset();
+
+public:
+	vector<Vec3f>    *position;         // position
+	vector<Vec3f>    *texCoord;         // texture coordinate
+	vector<Vec3f>    *normal;           // normal vector
+	vector<Vec3f>    *tangent;          // tagent vector
+	vector<Vec3i>    *triangles;        // triangle vertex indices
+	vector<Vec3i>    *triTexIndices;    // triangle texture coord indices
+	vector<Vec3i>    *triNormalIndices; // triangle normal vector indices
+	vector<IntList>  *polygons;         // polygon vertex indices
+	vector<IntList>  *polyTexIndices;   // polygon texture coord indices
+	vector<IntList>  *polyNormalIndices;// polygon normal vector indices
+	vector<Vec3f>    *faceNormal;       // face normal vector
+	vector<VtxLink>  *vtxLinks;
+};
+
+// generate the edges linked to each vertex
+int genVtxLinks(
+	const std::vector<Vec3i> & triangle,
+	std::vector<VtxLink>     & vlink);
+
+// insert a virtual edge at each boundary edge
+// return value: 1 - manifold mesh, 0 - otherwise
+int genBoundaryEdges(
+	const std::vector<Vec3i> & triangle,
+	std::vector<VtxLink>     & vlink);
+
+int calcFaceNormals(
+	const std::vector<Vec3i> & triangle,
+	const std::vector<Vec3f> & position,
+	std::vector<Vec3f> & faceNormal );
+
+void normalizeNormal(
+	std::vector<Vec3f> & faceNormal,
+	std::vector<float> & faceArea);
 
 } //namespace xglm {

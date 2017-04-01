@@ -2,7 +2,9 @@
 #define __glut_view_app_____
 
 #include <string>
+#include <map>
 #include "XGLM.h"
+#include "Variables.h"
 #include "MyGLUT.h"
 #include "Math3D/math.h"
 #include "Trackball.h"
@@ -10,7 +12,7 @@
 
 namespace xglm {
 
-using std::string; 
+using namespace std;
 
 void drawString(const char *str,	// the string to draw
 				int x, int y, 		// position to put
@@ -21,7 +23,7 @@ class GLUTApp
 {
 public:
 	GLUTApp(const char title[], int sizeX, int sizeY, int posX, int posY);
-	int    createWindow(int argc, char *argv[]);
+	int    createWindow();
 public:
 	int    _winID;
 	int    _winPosX;
@@ -66,6 +68,7 @@ public:
 	void setProj() const;
 };
 
+
 class GLView : public GlutCallback
 {
 public:
@@ -79,8 +82,9 @@ public:
 	virtual void drawText() = 0;
 	virtual void initialize();
 	virtual void applyProjectionAndModelview();
-public:
 	virtual void displayText();
+	virtual void setupLights();
+public:
 	virtual void cbReshape(int width, int height);
 	virtual void cbDisplay(void);
 	virtual void cbKeyboard(unsigned char key, int x, int y);
@@ -90,6 +94,7 @@ public:
 	int 	 _viewport[4];	 // viewport 
 	GLCamera _pproj;		 // perspective projection
 	Vec4f    _sceneCenter;   // c: center of the scene (in world)
+	float    _sceneSize;     // size of the scene
 	Vec4f    _sceneScaling;  // S: scaling imposed on the scene
 	Mat4f    _projection;    // the projection matrix
 	Mat4f    _modelview;     // M: model view matrix
@@ -103,11 +108,14 @@ public:
 	//
 	//
 	Trackball _trackball;
+	// timing fps
 	Timer     _timer;
 	double    _frameCount;
 	double    _frameCountTotal;
-};
+	// misc variables
+	VarSet    _variables;
 
+};
 
 } //namespace xglm {
 
