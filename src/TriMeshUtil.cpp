@@ -82,8 +82,8 @@ void normalizeNormal(
 }
 
 int calcFaceNormals(
-	const std::vector<Vec3i> & triangle,
 	const std::vector<Vec3f> & position,
+	const std::vector<Vec3i> & triangle,
 	std::vector<Vec3f> & faceNormal )
 {
 	const int FN = triangle.size();

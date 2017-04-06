@@ -52,10 +52,13 @@ public:
 			case 'v':
 				mInPicking = !mInPicking; break;
 				glutPostRedisplay();
-			case 's':
-			case 'S':
+			case 's': case 'S':
 				GLView::cbKeyboard(key,x,y);
 				mPickBuffer.markDirty(true); break;
+			case 'x': case 'X':
+				smoothOnce(); 
+				glutPostRedisplay();
+				break;
 			default:
 				GLView::cbKeyboard(key,x,y);
 		}
@@ -211,6 +214,19 @@ protected:
 		glReadPixels(0,0,viewport[2],viewport[3], GL_RGBA, GL_UNSIGNED_BYTE, mPickBuffer.getBuf());
 		glPopAttrib();
 		mPickBuffer.markDirty(false);
+	}
+	
+	void smoothOnce()
+	{
+		Smooth(
+			0.1f, //float normalSigma,
+			5,    //int   normalIterNum,
+			10,    //int   posUpdateNum,
+			0.01f, //float posUpdateStepsize,
+			this->mMesh.mPosition,
+			this->mMesh.mTriangles,
+			this->mMesh.mFaceNormal,
+			this->mMesh.mVtxLinks);
 	}
 	
 };

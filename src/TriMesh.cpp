@@ -68,7 +68,7 @@ int TriMesh::needBoundaryEdges()
 
 int TriMesh::needFaceNormals( bool needFaceAreas )
 {
-	calcFaceNormals(mTriangles,mPosition,mFaceNormal);
+	calcFaceNormals(mPosition,mTriangles,mFaceNormal);
 	mFaceArea.resize( needFaceAreas?mTriangles.size():0 );
 	normalizeNormal(mFaceNormal,mFaceArea);
 	return 1;

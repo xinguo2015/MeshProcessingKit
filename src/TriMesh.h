@@ -198,12 +198,21 @@ int genBoundaryEdges(
 	std::vector<VtxLink>     & vlink);
 
 int calcFaceNormals(
-	const std::vector<Vec3i> & triangle,
 	const std::vector<Vec3f> & position,
+	const std::vector<Vec3i> & triangle,
 	std::vector<Vec3f> & faceNormal );
 
 void normalizeNormal(
 	std::vector<Vec3f> & faceNormal,
 	std::vector<float> & faceArea);
 
+int Smooth(
+	float normalSigma,
+	int   normalIterNum,
+	int   posIterNum,
+	float posUpdateStepsize,
+	std::vector<Vec3f>   & position,
+	std::vector<Vec3i>   & triangle,
+	std::vector<Vec3f>   & triNormal,
+	std::vector<VtxLink> & vtxLink );
 } //namespace xglm {

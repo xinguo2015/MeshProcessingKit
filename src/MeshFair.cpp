@@ -12,78 +12,103 @@ namespace xglm {
 		return exp(-x*x/(2.0*sigma*sigma));
 	}
 	
-	int Smooth(
-		float sigma[2],
-		int   iterNum[2],
-		float stepsize,
-		std::vector<Vec3f>   & position,
+	// bilateral smooth mesh normal 
+	int smoothNormal(
+		float sigma, 
 		std::vector<Vec3i>   & triangle,
 		std::vector<Vec3f>   & triNormal,
-		std::vector<VtxLink> & vtxLink );
+		std::vector<VtxLink> & vtxLink,
+		std::vector<Vec3f>   & newTriNormal )
+	{
+		//const int VN = vtxLink.size();
+		const int FN = triangle.size();
+		
+		newTriNormal.resize( FN );
+		// smooth face normal
+		for( int f=0; f<FN; f++ )
+		{
+			Vec3f oldN ( triNormal[f] );
+			Vec3f newN ( triNormal[f]*2.0f );
+			//float wsum = 0;
+			// find the adjacent faces
+			for( int v=0; v<3; v++ )
+			{
+				const HEdgeList &edges = vtxLink[triangle[f][v]].edges();
+				for( std::size_t e=0; e<edges.size(); e++ )
+				{
+					int lf = edges[e].leftFace();
+					//pass boundary and face f
+					if( lf==f || lf<0 ) continue;
+					float dd = oldN.dot(oldN - triNormal[lf]);
+					float w = weight(sigma,dd); // wsum += w;
+					newN += w * triNormal[lf];
+				}
+			}
+			newTriNormal[f] = newN.normalize();
+		}
+		
+		return 1;
+		
+	}
+	
+	// ask the edges to be perpendicular to the face normal
+	int updateVertexBySmoothedFaceNormal(
+		float updateStepSize,
+		std::vector<Vec3i>   & triangle,
+		std::vector<Vec3f>   & triNormal,
+		std::vector<VtxLink> & vtxLink,
+		std::vector<Vec3f>   & position )
+	{
+		const int VN = position.size();
+		const int FN = triangle.size();
+		// compute gradient for each vertex
+		std::vector<Vec3f> g(VN,Vec3f(0,0,0));
+		//std::for_each(g.begin(),g.end(),[](Vec3f &v){if(v.x!=0||v.y!=0||v.z!=0)printf("error");});
+		for( int f = 0; f<FN; f++ )
+		{
+			for( int v=0; v<3; v++ )
+			{
+				int vi = triangle[f][v];
+				int vj = triangle[f][v>1?0:v+1];
+				float pij = triNormal[f].dot(position[vi]-position[vj]);
+				g[vi] += triNormal[f]*pij;
+				g[vj] -= triNormal[f]*pij;
+			}
+		}
+		// v <== v + r * dv
+		for( int v=0; v<VN; v++ )
+			position[v] -= updateStepSize * g[v];
+		
+		return 1;
+	}
 	
 	int Smooth(
-		float sigma[2],
-		int   iterNum[2],
-		float stepsize,
+		float normalSigma,
+		int   normalIterNum,
+		int   posIterNum,
+		float posUpdateStepsize,
 		std::vector<Vec3f>   & position,
 		std::vector<Vec3i>   & triangle,
 		std::vector<Vec3f>   & triNormal,
 		std::vector<VtxLink> & vtxLink )
 	{
-		const int VN = position.size();
-		const int FN = triangle.size();
-		
 		// smooth face normal
-		std::vector<Vec3f> newFaceNormal(FN);
-		for( int k = 0; k<iterNum[0]; k++ )
+		for( int k = 0; k<normalIterNum; k++ )
 		{
-			for( int f=0; f<FN; f++ )
-			{
-				Vec3f oldN ( triNormal[f] );
-				Vec3f newN ( triNormal[f]*2.0f );
-				float wsum = 0;
-				// find the adjacent faces
-				for( int v=0; v<3; v++ )
-				{
-					const HEdgeList &edges = vtxLink[triangle[f][v]].edges();
-					for( std::size_t e=0; e<edges.size(); e++ )
-					{
-						int lf = edges[e].leftFace();
-						//pass boundary and face f
-						if( lf==f || lf<0 ) continue;
-						float dd = oldN.dot(oldN - triNormal[lf]);
-						float w = weight(sigma[1],dd); wsum += w;
-						newN += w * triNormal[lf];
-					}
-				}
-				newFaceNormal[f] = newN.normalize();
-			}
+			std::vector<Vec3f> temp = triNormal;
+			smoothNormal(normalSigma,triangle,temp,vtxLink,triNormal);
 		}
-		
-		// update vertex position
-		std::vector<Vec3f> newPos = position; 
-		for( int k = 0; k<iterNum[0]; k++ )
-		{
-			// compute gradient for each vertex
-			std::vector<Vec3f> g(VN,Vec3f(0,0,0));
-			for( int f = 0; f<FN; f++ )
-			{
-				for( int v=0; v<3; v++ )
-				{
-					int vi = triangle[f][v];
-					int vj = triangle[f][(v+1)%3];
-					float proj = newFaceNormal[f].dot(newPos[vi]-newPos[vj]);
-					g[vi] += newFaceNormal[f]*proj;
-					g[vj] -= newFaceNormal[f]*proj;
-				}
-			}
-			// v <== v + r * dv
-			for( int v=0; v<VN; v++ )
-				newPos[v] -= stepsize * g[v];
+		// return 0;
+		for( int k = 0; k<posIterNum; k++ ) {
+			updateVertexBySmoothedFaceNormal(posUpdateStepsize,
+				triangle,triNormal,vtxLink,position);
 		}
-		// write the result back
-		position = newPos;
+		calcFaceNormals(position,triangle,triNormal);
+		//normalize the normal vector
+		std::for_each(triNormal.begin(),triNormal.end(), [](Vec3f &n){ 
+			n.normalize(); }
+		);
 		return 0;
 	}
 
-}
+} // namespace xglm {
