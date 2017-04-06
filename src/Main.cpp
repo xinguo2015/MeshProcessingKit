@@ -55,7 +55,10 @@ public:
 			case 's': case 'S':
 				GLView::cbKeyboard(key,x,y);
 				mPickBuffer.markDirty(true); break;
-			case 'x': case 'X':
+			case 'n':// add noise
+				addNoise();
+				break;
+			case 'x':
 				smoothOnce(); 
 				glutPostRedisplay();
 				break;
@@ -215,12 +218,27 @@ protected:
 		glPopAttrib();
 		mPickBuffer.markDirty(false);
 	}
-	
+	void addNoise()
+	{
+		srand((int)time(0));
+		float mag = mMesh._bbox.Size().length()*0.001f/RAND_MAX;
+		for_each(mMesh.mPosition.begin(), mMesh.mPosition.end(), [ mag ](Vec3f &p) 
+		{
+			p.x += rand()*mag;
+			p.y += rand()*mag;
+			p.z += rand()*mag;
+		});
+		calcFaceNormals(mMesh.mPosition,mMesh.mTriangles,mMesh.mFaceNormal);
+		//normalize the normal vector
+		std::for_each(mMesh.mFaceNormal.begin(),mMesh.mFaceNormal.end(), [](Vec3f &n){ 
+			n.normalize(); }
+		);
+	}
 	void smoothOnce()
 	{
 		Smooth(
 			0.1f, //float normalSigma,
-			5,    //int   normalIterNum,
+			2,    //int   normalIterNum,
 			10,    //int   posUpdateNum,
 			0.01f, //float posUpdateStepsize,
 			this->mMesh.mPosition,
@@ -233,6 +251,8 @@ protected:
 
 GLUTApp  theApp("MeshProcessingKit", 1800, 1600, 1200, 200);
 MyGLView theView;
+//GlutCallbacks<MyGLView> glutCBS(theView);
+
 int main (int argc, char *argv[])
 {
 	setbuf(stdout, NULL); // to seed ouput immediately for debugging

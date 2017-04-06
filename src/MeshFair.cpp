@@ -39,8 +39,9 @@ namespace xglm {
 					int lf = edges[e].leftFace();
 					//pass boundary and face f
 					if( lf==f || lf<0 ) continue;
-					float dd = oldN.dot(oldN - triNormal[lf]);
-					float w = weight(sigma,dd); // wsum += w;
+					float dd, w;
+					dd = 1 - oldN.dot( triNormal[lf] );
+					w = dd>0.5 ? 0 : weight(sigma,dd); // wsum += w;
 					newN += w * triNormal[lf];
 				}
 			}
