@@ -1,4 +1,9 @@
 core
 .DS_Store
 build/
+vs2013/Release
+vs2013/Debug
+#vs2013/mpk.*
+#!vs2013/mpk.sln
+#!vs2013/mpk.vcxproj
 /**/*~
