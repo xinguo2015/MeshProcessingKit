@@ -249,7 +249,7 @@ protected:
 	
 };
 
-GLUTApp  theApp("MeshProcessingKit", 1800, 1600, 1200, 200);
+GLUTApp  theApp("Mesh Processing", 1800, 1600, 1200, 200);
 MyGLView theView;
 //GlutCallbacks<MyGLView> glutCBS(theView);
 
