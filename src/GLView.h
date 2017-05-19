@@ -68,33 +68,6 @@ public:
 	void setProj() const;
 };
 
-
-template<typename TView>
-class GlutCallbacks
-{
-	static TView *view;
-public:
-	GlutCallbacks( TView * v )                               { view = v; }
-	GlutCallbacks( TView   v )                               { view = &v; }
-	static void cbReshape(int width, int height)             { view->cbReshape(width,height); } 
-	static void cbDisplay(void)                              { view->cbDisplay(); }
-	static void cbOverlayDisplay(void)                       { view->cbOverlayDisplay(); }
-	static void cbKeyboard(unsigned char key, int x, int y)  { view->cbKeyboard(key,x,y); }
-	static void cbKeyboardUp(unsigned char key, int x, int y){ view->cbKeyboardUp(key,x,y); }
-	static void cbSpecial(int key, int x, int y)             { view->cbSpecial(key,x,y); } 
-	static void cbSpecialUp(int key, int x, int y)           { view->cbSpecialUp(key,x,y); }
-	static void cbMouse(int button, int state, int x, int y) { view->cbMouse(button, state, x, y); } 
-	static void cbMotion(int x, int y)                       { view->cbMotion(x, y); }
-	static void cbPassiveMotion(int x, int y)                { view->cbPassiveMotion(x, y); }
-	static void cbEntry(int state)                           { view->cbEntry(state); }
-	static void cbVisibility(int state)                      { view->cbVisibility(state); }
-	static void cbIdle(void)                                 { view->cbIdle(); }
-	static void cbTimer(int value)                           { view->cbTimer(value); }
-	static void cbMenuStatus(int status, int x, int y)       { view->cbMenuStatus(status,x,y); }
-	static void cbMenuState(int state)                       { view->cbMenuState(state); } 
-	static void cbWindowStatus(int state)                    { view->cbWindowStatus(state); }
-};
-
 class GLView : public GlutCallbackInterface
 {
 public:
@@ -144,8 +117,6 @@ public:
 };
 
 
-template<typename TView>
-TView* GlutCallbacks<TView>::view=NULL;
 
 } //namespace xglm {
 

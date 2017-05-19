@@ -7,7 +7,7 @@ Current Build Directory Index=0
 ProjectRootRelative=./
 
 [CMake][CMake Build Directory 0]
-Build Directory Path=file:///home/external/Documents/MeshProcessingKit/build
+Build Directory Path=file:///home/xinguo/Documents/MeshProcessingKit/build
 Build Type=
 CMake Binary=file:///usr/bin/cmake
 Environment Profile=
@@ -20,7 +20,7 @@ Path=gcc
 Type=GCC
 
 [Filters]
-size=25
+size=27
 
 [Filters][0]
 inclusive=0
@@ -112,6 +112,16 @@ inclusive=0
 pattern=/<wrong-target>
 targets=1
 
+[Filters][25]
+inclusive=0
+pattern=/vs2013
+targets=2
+
+[Filters][26]
+inclusive=0
+pattern=/model3d
+targets=2
+
 [Filters][3]
 inclusive=0
 pattern=.svn
@@ -157,11 +167,11 @@ Name=New Compiled Binary Launcher
 Type=Native Application
 
 [Launch][Launch Configuration 0][Data]
-Arguments=/home/external/Data3D/Dolphin.obj
+Arguments=/home/xinguo/External/Data3D/Dolphin.obj
 Dependencies=@Variant(\x00\x00\x00\t\x00\x00\x00\x00\x00)
 Dependency Action=Nothing
 EnvironmentGroup=
-Executable=file:///home/external/Documents/MeshProcessingKit/build/mpkit
+Executable=file:///home/xinguo/Documents/MeshProcessingKit/build/mpkit
 External Terminal=konsole --noclose --workdir %workdir -e %exe
 Project Target=MeshProcessingKit,<wrong-target>
 Use External Terminal=false

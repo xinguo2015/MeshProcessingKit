@@ -35,12 +35,13 @@ set (CMAKE_CXX_FLAGS_RELEASE "-O3")
 #set (CMAKE_BUILD_TYPE Release) 
 # 设置缺省的版本为Debug
 set (CMAKE_BUILD_TYPE Debug)
-
+ 
 # 搜索src目录下的源程序文件
 # 文件名都保存于变量 DIR_SRCS
-aux_source_directory (src DIR_SRCS)
+aux_source_directory (src mpksrc)
+aux_source_directory (imgui guisrc)
 
 # 添加源代码文件生成可执行程序
-add_executable (mpkit ${DIR_SRCS} )
+add_executable (mpkit ${mpksrc} ${guisrc} )
 target_link_libraries (mpkit ${GLUT_LIBRARY} ${OPENGL_LIBRARY})
 
