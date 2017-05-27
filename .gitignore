@@ -6,3 +6,6 @@ vs2010/Debug
 vs2013/Release
 vs2013/Debug
 /**/*~
+vs201*/*.sdf
+vs201*/*.opensdf
+vs201*/*.suo

@@ -77,7 +77,7 @@ void normalizeNormal(
 		if( len>1.0e-6 )
 			faceNormal[k] /= len;
 		if( keepArea )
-			faceArea[k] = len/2.0;
+			faceArea[k] = len/2.0f;
 	}
 }
 

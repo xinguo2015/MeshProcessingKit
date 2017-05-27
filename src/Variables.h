@@ -3,6 +3,11 @@
 
 #include "XGLM.h"
 
+#define __define_get_method__(TypeName)  \
+    TypeName  get##TypeName() const { return *(const TypeName*)(const void*)v; } \
+	TypeName& get##TypeName()       { return *(TypeName*)(void*)v; }
+
+
 namespace xglm {
 	
 typedef std::vector<int>    IntArray;
@@ -18,30 +23,27 @@ class VarValue
 {
 	char v[sizeof(double)*16];
 public:
-#define addmethod(a) a  get##a() const { return *(const a*)(const void*)v; } \
-                     a& get##a()       { return *(a*)(void*)v; } 
-	addmethod(char)
-	addmethod(int)
-	addmethod(unsigned)
-	addmethod(float)
-	addmethod(double)
-	addmethod(Vec2ui)
-	addmethod(Vec2i)
-	addmethod(Vec2f)
-	addmethod(Vec2d)
-	addmethod(Vec3ui)
-	addmethod(Vec3i)
-	addmethod(Vec3f)
-	addmethod(Vec3d)
-	addmethod(Vec4ui)
-	addmethod(Vec4i)
-	addmethod(Vec4f)
-	addmethod(Vec4d)
-	addmethod(Quatf)
-	addmethod(Quatd)
-	addmethod(Mat4f)
-	addmethod(Mat4d)
-#undef addmethod
+	__define_get_method__(char)
+	__define_get_method__(int)
+	__define_get_method__(unsigned)
+	__define_get_method__(float)
+	__define_get_method__(double)
+	__define_get_method__(Vec2ui)
+	__define_get_method__(Vec2i)
+	__define_get_method__(Vec2f)
+	__define_get_method__(Vec2d)
+	__define_get_method__(Vec3ui)
+	__define_get_method__(Vec3i)
+	__define_get_method__(Vec3f)
+	__define_get_method__(Vec3d)
+	__define_get_method__(Vec4ui)
+	__define_get_method__(Vec4i)
+	__define_get_method__(Vec4f)
+	__define_get_method__(Vec4d)
+	__define_get_method__(Quatf)
+	__define_get_method__(Quatd)
+	__define_get_method__(Mat4f)
+	__define_get_method__(Mat4d)
 	const char* getstr() const  { return v; }
 	const char* setstr(const char* s)
 	{
@@ -58,10 +60,10 @@ public:
 class VarSet
 {
 public: 
-	      VarValue & operator[](const std::string & key)    { return _str_vs[key]; }
-	const VarValue &        get(const std::string & key)    { return _str_vs.at(key); }
-	      VarValue & operator[](              int   key)    { return _int_vs[key]; }
-	const VarValue &        get(              int   key)    { return _int_vs.at(key); }
+	VarValue & operator [] (const std::string & key)    { return _str_vs[key]; }
+	VarValue & operator [] (int   key)                  { return _int_vs[key]; }
+	const VarValue &    get(const std::string & key)    { return _str_vs.at(key); }
+	const VarValue &    get(int   key)                  { return _int_vs.at(key); }
 	// check variable existence
 	bool find(const std::string & key) const { return _str_vs.find(key)!=_str_vs.end(); }
 	bool find(int                 key) const { return _int_vs.find(key)!=_int_vs.end(); }

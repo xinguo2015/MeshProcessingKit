@@ -9,7 +9,7 @@ namespace xglm {
 	
 	static float weight(float sigma, float x)
 	{
-		return exp(-x*x/(2.0*sigma*sigma));
+		return (float)exp(-x*x/(2.0*sigma*sigma));
 	}
 	
 	// bilateral smooth mesh normal 

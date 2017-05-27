@@ -9,7 +9,8 @@
 #include <algorithm>
 #include <functional>
 
-#include "GLView.h"
+#include "utilities.h"
+#include "GLUTView.h"
 #include "TriMesh.h"
 #include "MeshIO.h"
 #include "DrawUtil.h"
@@ -24,7 +25,7 @@ using namespace xglm;
 void *gTextFont = GLUT_BITMAP_TIMES_ROMAN_24;
 const int TEXT_WIDTH = 13;
 const int TEXT_HEIGHT = 24;
-class MyGLView : public GLView
+class MyGLUTView : public GLUTView
 {
 public:
 	TriMesh			mMesh;
@@ -36,13 +37,14 @@ public:
 	bool            mInPicking;
 	
 public:
-	MyGLView()
+	MyGLUTView(const char title[], int posX, int posY, int sizeX, int sizeY)
+		:GLUTView(title, posX, posY, sizeX, sizeY)
 	{
 		mInPicking = true;
 	}
 	virtual void cbReshape(int width, int height)
 	{
-		GLView::cbReshape(width,height);
+		GLUTView::cbReshape(width,height);
 		mPickBuffer.markDirty(true);
 	}
 	virtual void cbKeyboard(unsigned char key, int x, int y)
@@ -53,7 +55,7 @@ public:
 				mInPicking = !mInPicking; break;
 				glutPostRedisplay();
 			case 's': case 'S':
-				GLView::cbKeyboard(key,x,y);
+				GLUTView::cbKeyboard(key,x,y);
 				mPickBuffer.markDirty(true); break;
 			case 'n':// add noise
 				addNoise();
@@ -63,13 +65,13 @@ public:
 				glutPostRedisplay();
 				break;
 			default:
-				GLView::cbKeyboard(key,x,y);
+				GLUTView::cbKeyboard(key,x,y);
 		}
 		
 	}
 	virtual void cbMouse(int button, int state, int x, int y)
 	{
-		GLView::cbMouse(button,state,x,y);
+		GLUTView::cbMouse(button,state,x,y);
 		if( state==GLUT_DOWN )
 		{
 			if( mInPicking && ! _trackball.isActive() && ! mPickBuffer.isDirty() )
@@ -79,7 +81,7 @@ public:
 	}
 	virtual void cbMotion(int x, int y)
 	{
-		GLView::cbMotion(x,y);
+		GLUTView::cbMotion(x,y);
 		if( _trackball.isActive() )
 			mPickBuffer.markDirty(true);
 	}
@@ -97,7 +99,7 @@ public:
 		{
 			updatePickBuffer();
 		}
-		GLView::cbDisplay();
+		GLUTView::cbDisplay();
 	}
 	virtual int loadScene(string scene)
 	{
@@ -205,7 +207,7 @@ protected:
 		glClearColor(0.f, 0.f, 0.f, 0.f);
 		glDisable(GL_LIGHTING);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		GLView::applyProjectionAndModelview();
+		GLUTView::applyProjectionAndModelview();
 		// drawing....
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		DrawMesh::FaceID(mMesh.mTriangles, mMesh.mPosition);
@@ -249,31 +251,29 @@ protected:
 	
 };
 
-GLUTApp  theApp("Mesh Processing", 1800, 1600, 1200, 200);
-MyGLView theView;
-//GlutCallbacks<MyGLView> glutCBS(theView);
+MyGLUTView theMainView("Mesh", 1800, 1600, 1200, 200);;
 
 int main (int argc, char *argv[])
 {
 	setbuf(stdout, NULL); // to seed ouput immediately for debugging
 
 	glutInit(&argc, argv);
-	if( ! theApp.createWindow() ) {
+	if (!theMainView.createWindow()) {
 		printf("Failed creating the window\n");
 		return 1;
 	}
-	if( argc<2 || ! theView.loadScene( argv[1] ) ) {
+	if( argc<2 || ! theMainView.loadScene( argv[1] ) ) {
 		printf("Need a valid path to the input model\n");
 		return 1;
 	}
-	theView.initialize ();
+	theMainView.initialize();
 	// glut callback functions // using c++ 11's lambda
-	glutReshapeFunc(	[](int w, int h)						->void { theView.cbReshape(w,h); });
-	glutDisplayFunc(	[]()									->void { theView.cbDisplay(); });
-	glutKeyboardFunc(	[](unsigned char key, int x, int y)		->void { theView.cbKeyboard(key,x,y); });
-	glutMouseFunc(		[](int button, int state, int x, int y)	->void { theView.cbMouse(button,state,x,y); });
-	glutMotionFunc(		[](int x, int y)						->void { theView.cbMotion(x,y); });
-	glutPassiveMotionFunc([](int x, int y)						->void { theView.cbPassiveMotion(x,y); });
+	glutReshapeFunc(	[](int w, int h)						->void { theMainView.cbReshape(w,h); });
+	glutDisplayFunc(	[]()									->void { theMainView.cbDisplay(); });
+	glutKeyboardFunc(	[](unsigned char key, int x, int y)		->void { theMainView.cbKeyboard(key,x,y); });
+	glutMouseFunc(		[](int button, int state, int x, int y)	->void { theMainView.cbMouse(button,state,x,y); });
+	glutMotionFunc(		[](int x, int y)						->void { theMainView.cbMotion(x,y); });
+	glutPassiveMotionFunc([](int x, int y)						->void { theMainView.cbPassiveMotion(x,y); });
 	// running the application
 	glutMainLoop();
     return 0;

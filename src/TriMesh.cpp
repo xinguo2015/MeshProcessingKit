@@ -252,7 +252,7 @@ int TriMesh::needSimpleLaplacian()
 
 int TriMesh::needCrease(float angle) 
 {
-	const float cosa = cos(angle/180*M_PI);
+	const float cosa = (float)cos(angle/180*M_PI);
 	const size_t FN = mTriangles.size();
 	const size_t VN = mPosition.size();
 	if( mNormal.size()<=VN )

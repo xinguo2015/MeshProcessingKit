@@ -47,9 +47,9 @@ public:
 	PixelInfo getAt(int x, int y) 		{ return mBuffer[x+y*mSize[0]]; }
 	
 public:
-	bool				mDirty;
-	int					mSize[2];
 	vector<PixelInfo>	mBuffer;
+	int					mSize[2];
+	int				    mDirty;
 };
 
 }

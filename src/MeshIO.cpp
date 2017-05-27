@@ -43,7 +43,7 @@ namespace xglm {
 			return 0;
 		}
 		ifstream ifs( filename.c_str());
-		if( strcasecmp(pext,".obj")==0 )
+		if( strcmp(pext,".obj")==0 )
             readResult = MeshIO<TriMesh>::readOBJ( ifs, mesh);
 		return readResult;
 		return 1;
