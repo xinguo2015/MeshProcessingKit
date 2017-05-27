@@ -29,7 +29,7 @@ public:
 	int    _winPosX;
 	int    _winPosY;
 	int    _winWidth;
-	int	   _winHeight;
+	int    _winHeight;
 	string _winTitle;
 };
 
