@@ -37,8 +37,7 @@ public:
 	bool            mInPicking;
 	
 public:
-	MyGLUTView(const char title[], int posX, int posY, int sizeX, int sizeY)
-		:GLUTView(title, posX, posY, sizeX, sizeY)
+	MyGLUTView()
 	{
 		mInPicking = true;
 	}
@@ -251,29 +250,28 @@ protected:
 	
 };
 
-MyGLUTView theMainView("Mesh", 1800, 1600, 1200, 200);;
+GLUTApp<MyGLUTView> theAPP("MeshKit", 1024, 800);
 
 int main (int argc, char *argv[])
 {
 	setbuf(stdout, NULL); // to seed ouput immediately for debugging
 
 	glutInit(&argc, argv);
-	if (!theMainView.createWindow()) {
+	if (!theAPP.createWindow()) {
 		printf("Failed creating the window\n");
 		return 1;
 	}
-	if( argc<2 || ! theMainView.loadScene( argv[1] ) ) {
+	if( argc<2 || ! theAPP.getView()->loadScene( argv[1] ) ) {
 		printf("Need a valid path to the input model\n");
 		return 1;
 	}
-	theMainView.initialize();
+	theAPP.getView()->initialize();
 	// glut callback functions // using c++ 11's lambda
-	glutReshapeFunc(	[](int w, int h)						->void { theMainView.cbReshape(w,h); });
-	glutDisplayFunc(	[]()									->void { theMainView.cbDisplay(); });
-	glutKeyboardFunc(	[](unsigned char key, int x, int y)		->void { theMainView.cbKeyboard(key,x,y); });
-	glutMouseFunc(		[](int button, int state, int x, int y)	->void { theMainView.cbMouse(button,state,x,y); });
-	glutMotionFunc(		[](int x, int y)						->void { theMainView.cbMotion(x,y); });
-	glutPassiveMotionFunc([](int x, int y)						->void { theMainView.cbPassiveMotion(x,y); });
+	glutReshapeFunc(	theAPP.cbReshape  );
+	glutDisplayFunc(	theAPP.cbDisplay  ); 
+	glutKeyboardFunc(	theAPP.cbKeyboard );
+	glutMouseFunc(		theAPP.cbMouse    );
+	glutMotionFunc(		theAPP.cbMotion   );
 	// running the application
 	glutMainLoop();
     return 0;

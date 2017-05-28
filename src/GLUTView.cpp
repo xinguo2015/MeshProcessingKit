@@ -25,42 +25,14 @@ namespace xglm {
 		}
 	}
 		
-	GLUTView::GLUTView(const char title[], int posX, int posY, int winWidth, int winHeight)
-	{
-		_winID = -1;
-		_winTitle = string(title);
-		_winPosX = posX;
-		_winPosY = posY;
-		_winWidth = winWidth;
-		_winHeight = winHeight;
-	}
-
 
 	GLUTView::GLUTView()
 	{
-		// window
-		_winID = -1;
-		_winTitle = string("OpenGL Application");
-		_winPosX = 100;
-		_winPosY = 100;
-		_winWidth = 800;
-		_winHeight = 600;
 		// frame count
 		_frameCount = 0;
-		_frameCountTotal = 0;	}
-
-	int GLUTView::createWindow()
-	{
-		// initialize glut
-		glutInitWindowPosition(_winPosX, _winPosY);
-		glutInitWindowSize(_winWidth, _winHeight);
-		// GLUT_ALPHA must be specified for using alpha
-		glutInitDisplayMode(GLUT_DOUBLE | GLUT_DEPTH | GLUT_RGBA | GLUT_ALPHA); 
-		_winID = glutCreateWindow(_winTitle.c_str());
-		if( _winID < 0 ) 
-			return 0;
-		return 1;
+		_frameCountTotal = 0;	
 	}
+
 	
 	///////////////////////////////////////////////////////////////////////////////
 	// display frame rates

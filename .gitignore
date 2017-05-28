@@ -1,11 +1,10 @@
 core
 .DS_Store
 build/
-vs2010/Release
-vs2010/Debug
-vs2013/Release
-vs2013/Debug
 /**/*~
+vs201*/ipch
+vs201*/Release
+vs201*/Debug
 vs201*/*.sdf
 vs201*/*.opensdf
 vs201*/*.suo
